@@ -2,6 +2,10 @@ import os
 import random
 import pygame
 import time
+import re
+
+global leaderboard
+leaderboard = []
 
 class Player(object):
     def __init__(self):
@@ -78,6 +82,32 @@ def save_high_score(high_score):
         print("Unable to save.")
 
 
+def load_leaderboard():
+    global leaderboard
+    
+    try:
+        with open("leaderboard.txt", "r") as leaders:
+            leaderboard = []
+            for line in leaders: 
+                leaderboard.append(line.strip())
+        leaders.close()
+        
+    except IOError:
+        print("No leaderboard available.")
+    except ValueError:
+        print("File error. No leaderboard was loaded.")
+
+
+
+def save_leaderboard(newleaders):
+    try:
+        save_file = open("leaderboard.txt", "w")
+        save_file.write(newleaders)
+        save_file.close()
+    except IOError:
+        print("Unable to save.")
+
+
 
 
 #start pygame
@@ -99,6 +129,7 @@ player = Player() #create a player object using the class above
 colour = (0,128,255)
 wall_colour = (255,255,255)
 current_score = 0
+player_name = ""
 
 #In the level, W means wall & E means exit
 
@@ -200,19 +231,28 @@ for row in level:
 #start the game play!
 running = True
 
-# pygame.mixer.music.load("background_music.mp3")
-# 
-# pygame.mixer.music.play(-1) # the -1 is the loops, so here is infinite 
+pygame.mixer.music.load("background_music.mp3")
+
+pygame.mixer.music.play(-1) # the -1 is the loops, so here is infinite 
 
 screen.fill((0,0,0))
-message_display("Use arrows & space bar to get to the exit!",300,300,20)
+message_display("Use arrows & space bar to get to the exit!",300,100,20)
+paragraph = 150
+load_leaderboard()
+
+for leader in leaderboard:
+    message_display(leader,300,paragraph,20)
+    paragraph += 50
+
 pygame.display.flip()
 time.sleep(2)
+
 
 
 while running:
     clock.tick(60)
     high_score = load_high_score()
+
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -245,16 +285,14 @@ while running:
         player.move(5,0)
         if player.rect.x > width:
             player.rect.x= -59
-            
-##    if user_input[pygame.K_q]:
-##        pygame.quit()
+        
+
 
     if player.rect.colliderect(end_rect):
         current_score += 1
         print(current_score)
         if current_score > high_score:
-            save_high_score(current_score) # update high score
-            
+            save_high_score(current_score)
                  
         del walls[:]
         level = random.choice(levels)
@@ -282,6 +320,53 @@ while running:
     pygame.draw.rect(screen,(255,0,0),end_rect)    
     pygame.draw.rect(screen,colour,player.rect)
     pygame.display.flip()
+
+
+leader_entry = True
+leader_number = 4
+highscore_1 = re.findall('\d+', leaderboard[0])
+highscore_2 = re.findall('\d+', leaderboard[1])
+highscore_3 = re.findall('\d+', leaderboard[2])
+new_leaderboard = ""
+
+while leader_entry:
+
+    if current_score > int(highscore_1[0]):
+        leader_number = 0
+    elif current_score > int(highscore_2[0]):
+        leader_number = 1
+    elif current_score > int(highscore_3[0]):
+        leader_number = 2
+
+
+    if leader_number < 3:
+        for event in pygame.event.get():
+            if (event.type == pygame.KEYDOWN):
+
+                if event.key == pygame.K_RETURN:
+                    leader_entry = False
+                else:
+                    print(pygame.key.name(event.key))
+                    player_name += pygame.key.name(event.key)
+                           
+            screen.fill((0,0,0))
+            message_display("NEW HIGH SCORE!", 250,200,20)
+            message_display("Enter Name: " + player_name, 250,250,20)
+            pygame.display.flip()
+
+            leaderboard[leader_number] = player_name + " " + str(current_score)
+            
+            new_leaderboard = leaderboard[0] + "\n" + leaderboard[1] + "\n" + leaderboard[2]
+            save_leaderboard(new_leaderboard)
+
+            
+    else:
+            screen.fill((0,0,0))
+            message_display("GAME OVER!", 250,200,20)
+            pygame.display.flip()
+            time.sleep(2)
+            leader_entry = False
+
 
 pygame.quit()
 

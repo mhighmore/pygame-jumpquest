@@ -200,9 +200,9 @@ for row in level:
 #start the game play!
 running = True
 
-# pygame.mixer.music.load("background_music.mp3")
-# 
-# pygame.mixer.music.play(-1) # the -1 is the loops, so here is infinite 
+pygame.mixer.music.load("background_music.mp3")
+
+pygame.mixer.music.play(-1) # the -1 is the loops, so here is infinite 
 
 screen.fill((0,0,0))
 message_display("Use arrows & space bar to get to the exit!",300,300,20)

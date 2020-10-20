@@ -2,6 +2,7 @@ import os
 import random
 import pygame
 
+# example comment
 class Player(object):
     def __init__(self):
         self.rect = pygame.Rect(30,30,60,60)
